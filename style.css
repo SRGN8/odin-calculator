@@ -1,0 +1,127 @@
+body {
+  background-color: rgb(214, 210, 189);
+  font: sans-serif;
+  margin: 0 0 0 0;
+}
+
+li {
+  /* margin: 10px; */
+}
+
+#container {
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+}
+
+.calculator {
+  /* display: flex; */
+  height: 84vh;
+  width: 40vw;
+  /* justify-content: center; */
+  /* align-items: center; */
+  background-color: rgb(75, 75, 75);
+  border-radius: 15px;
+}
+
+.display {
+  display: flex;
+  /* background-color: blueviolet; */
+  height: 18vh;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.5em;
+  /* width: auto; */
+}
+
+.screen {
+  height: 12vh;
+  width: 36vw;
+  border-radius: 10px;
+  color: black;
+  background-color: rgb(150, 223, 223);
+  font-size: 2em;
+  font-weight: bolder;
+}
+
+.controls {
+  display: grid;
+  height: 66vh;
+  grid-template-rows: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr);
+  /* background-color: palevioletred; */
+  justify-items: center;
+  align-items: center;
+  border-radius: 10px;
+}
+
+.button {
+  display: flex;
+  height: 4.5vw;
+  width: 6.8vw;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.6em;
+  font-weight: bolder;
+  border-radius: 10px;
+  background-color: rgba(233, 230, 214, 0.781);
+  cursor: pointer;
+}
+
+.memCont {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 84vh;
+  width: 20vw;
+  background-color: rgb(75, 75, 75);
+  border-radius: 10px;
+  margin: 5px;
+}
+
+.memHead {
+  display: flex;
+  height: 6vh;
+  justify-content: space-around;
+  align-items: center;
+  /* background-color: palevioletred; */
+  /* opacity: 0.3; */
+  border-radius: 10px;
+}
+
+.memName {
+  color: white;
+  font-size: 1.4em;
+  font-weight: bolder;
+  margin: 10px;
+}
+
+.memClear {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 4.2vh;
+  width: 6vw;
+  background-color: rgba(233, 230, 214, 0.781);
+  color: rgb(48, 48, 48);
+  font-weight: bolder;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.memDisplay {
+  /* background-color: rgb(145, 145, 145); */
+  background-color: rgb(150, 223, 223);
+  height: 76vh;
+  width: 18.7vw;
+  border-radius: 10px;
+}
+
+.memList {
+  list-style: none;
+  font-weight: bold;
+  float: right;
+  margin-right: 10px;
+}
