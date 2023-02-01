@@ -4,8 +4,8 @@ body {
   margin: 0 0 0 0;
 }
 
-li {
-  /* margin: 10px; */
+.memory {
+  padding-bottom: 20px;
 }
 
 #container {
@@ -43,6 +43,8 @@ li {
   background-color: rgb(150, 223, 223);
   font-size: 2em;
   font-weight: bolder;
+  text-align: right;
+  padding-right: 10px;
 }
 
 .controls {

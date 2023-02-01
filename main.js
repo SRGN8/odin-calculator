@@ -1,6 +1,11 @@
 // GLOBAL VARS
-let tempCounter = 0;
-let decimalCheck = 0;
+let numCheck = false;
+const operatorDetector = /[\W_]/g;
+const numDetector = /\d/;
+let equationCont = [];
+let equationResult;
+let eCounter = 0;
+let digitCounter = 0;
 
 // PROJECT CONTAINER
 const body = document.querySelector("body");
@@ -29,11 +34,11 @@ const calcButtons = [
   },
   {
     name: "reciprocal",
-    value: "	&#8543x",
+    value: "	&#8543&#x2093",
   },
   {
     name: "squared",
-    value: "x^2",
+    value: "&#x78&#xb2",
   },
   {
     name: "square_root",
@@ -109,32 +114,6 @@ const calcButtons = [
   },
 ];
 
-// BASIC MATH OPERATIONS
-function add(a, b) {
-  return a + b;
-}
-
-function subtract(a, b) {
-  return a - b;
-}
-
-function divide(a, b) {
-  return a / b;
-}
-
-function multiply(a, b) {
-  return a * b;
-}
-
-// OPERATE FUNCTION
-
-function operate(op, a, b) {
-  console.log(op);
-  if (op == add) {
-    return add(a, b);
-  }
-}
-
 // CREATE CALCULATOR
 const calculator = document.createElement("div");
 calculator.classList.add("calculator");
@@ -176,27 +155,82 @@ memCont.appendChild(memDisplay);
 contSelector.appendChild(memCont);
 const mListSelector = document.querySelector(".memList");
 
-/*
-
-TODO
-
-- add in the functionallity for calc
-
-- give buttons click effects
-
-- style the scrollbar for div
-
-# Make Memory DIV scrollable
--https://www.w3docs.com/snippets/css/how-to-make-a-div-vertically-scrollable.html
-
-
-*/
-
 // CALCULATOR CONTROLS
 const controls = document.createElement("div");
 controls.classList.add("controls");
 calcSelector.appendChild(controls);
 const ctrlSelect = document.querySelector(".controls");
+
+// ADD TO MEMORY
+function addMemory(eval) {
+  const memory = document.createElement("li");
+  memory.classList.add("memory");
+
+  if (eval == "divisionError") {
+    memory.innerHTML = `You tried to Divide By 0... STAHP! NOOOO-!`;
+    mListSelector.prepend(memory);
+    screenSelector.value = "";
+    return 1;
+  }
+
+  memory.innerHTML = `${screenSelector.value} = ${eval}`;
+  mListSelector.prepend(memory);
+  screenSelector.value = eval;
+  return 0;
+}
+
+// EQUATION EVALUATION FUNCTION
+function evalEquation(arr) {
+  const a = arr[0];
+  const b = arr[1];
+  const c = arr[2];
+  let result;
+
+  // BASIC MATH OPERATIONS
+  function multiply(a, b) {
+    result = parseInt(a) * parseInt(b);
+    addMemory(result);
+    equationResult = result;
+    return 0;
+  }
+
+  function divide(a, b) {
+    result = parseInt(a) / parseInt(b);
+    addMemory(result);
+    equationResult = result;
+    return 0;
+  }
+
+  function add(a, b) {
+    result = parseInt(a) + parseInt(b);
+    addMemory(result);
+    equationResult = result;
+    return 0;
+  }
+
+  function subtract(a, b) {
+    result = parseInt(a) - parseInt(b);
+    addMemory(result);
+    equationResult = result;
+    return 0;
+  }
+
+  if (b == "×") {
+    result = multiply(a, c);
+  }
+
+  if (b == "÷") {
+    result = divide(a, c);
+  }
+
+  if (b == "+") {
+    result = add(a, c);
+  }
+
+  if (b == "-") {
+    result = subtract(a, c);
+  }
+}
 
 // CALCULATOR BUTTON GENERATOR FUNCTION
 function buttonGen() {
@@ -216,12 +250,95 @@ function buttonGen() {
 
 // BUTTON PRESS EVENT
 function buttonPressEvent() {
-  // const memory = document.createElement("li");
-  // memory.innerHTML = `Append #${tempCounter}`;
-  // mListSelector.prepend(memory);
-  // tempCounter++;
-  console.log(this.innerHTML);
-  screenSelector.value = screenSelector.value + `${this.innerHTML}`;
+  // Operator Button Check
+  if (
+    numCheck &&
+    this.innerHTML.match(operatorDetector) &&
+    this.innerHTML != "=" &&
+    this.innerHTML != "." &&
+    this.innerHTML !== "+/-"
+  ) {
+    if (equationCont.length == 3) {
+      evalEquation(equationCont);
+      equationCont.length = 0;
+      equationCont.push(equationResult);
+      equationCont.push(this.innerHTML);
+      numCheck = false;
+      screenSelector.value = screenSelector.value + ` ${this.innerHTML} `;
+      eCounter = 2;
+      digitCounter = 0;
+      console.log(equationCont);
+    } else {
+      numCheck = false;
+      equationCont.push(this.innerHTML);
+      eCounter += 2;
+      digitCounter = 0;
+      screenSelector.value = screenSelector.value + ` ${this.innerHTML} `;
+    }
+  }
+
+  // Number Button Check
+  if (this.innerHTML.match(numDetector)) {
+    numCheck = true;
+
+    if (digitCounter < 16) {
+      if (equationCont.length >= 1) {
+        if (equationCont[eCounter] == undefined) {
+          equationCont[eCounter] = this.innerHTML;
+          digitCounter++;
+        } else {
+          equationCont[eCounter] = equationCont[eCounter] + this.innerHTML;
+          digitCounter++;
+        }
+      } else {
+        equationCont.push(this.innerHTML);
+        digitCounter++;
+      }
+
+      screenSelector.value = screenSelector.value + `${this.innerHTML}`;
+    }
+  }
+
+  // Delete Button
+  if (this.innerHTML == "DEL" && screenSelector.value != "") {
+    let displayCopy = screenSelector.value;
+    let opCheck = displayCopy.charAt(displayCopy.length - 1);
+    let eContCopy = equationCont[eCounter];
+
+    if (opCheck === " ") {
+      screenSelector.value = displayCopy.slice(0, displayCopy.length - 3);
+      equationCont[eCounter] = eContCopy.slice(0, -1);
+    } else {
+      screenSelector.value = displayCopy.slice(0, displayCopy.length - 1);
+      equationCont[eCounter] = eContCopy.slice(0, -1);
+      digitCounter--;
+    }
+
+    if (equationCont[eCounter].length == 0) {
+      equationCont.length -= 1;
+      if (eCounter > 0) {
+        eCounter--;
+      }
+    }
+  }
+
+  //Evaluation Trigger
+  if (this.innerHTML == "=" && screenSelector.value != "") {
+    if (equationCont.length == 3 && equationCont[2] != "") {
+      // Dont Divide By Zero...
+      if (
+        (equationCont[1] == "÷" && equationCont[0] == 0) ||
+        equationCont[2] == 0
+      ) {
+        addMemory("divisionError");
+        screenSelector.value = "";
+        return 1;
+      }
+
+      evalEquation(equationCont);
+      return 0;
+    }
+  }
 }
 
 buttonGen();
