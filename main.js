@@ -6,6 +6,8 @@ let equationCont = [];
 let equationResult;
 let eCounter = 0;
 let digitCounter = 0;
+let commaPos = 1;
+let addComma = 0;
 
 // PROJECT CONTAINER
 const body = document.querySelector("body");
@@ -17,7 +19,7 @@ const contSelector = document.getElementById("container");
 // CALCULATOR BUTTONS
 const calcButtons = [
   {
-    name: "modulus",
+    name: "percentage",
     value: "%",
   },
   {
@@ -122,15 +124,24 @@ const calcSelector = document.querySelector(".calculator");
 
 // CALCULATOR DISPLAY & SCREEN
 const display = document.createElement("div");
-const screen = document.createElement("input");
+const screen = document.createElement("div");
+const inputField = document.createElement("input");
+const eqMemory = document.createElement("input");
 display.classList.add("display");
 screen.classList.add("screen");
-screen.type = "text";
-screen.disabled = true;
+inputField.classList.add("inputField");
+eqMemory.classList.add("eqMemory");
+eqMemory.type = "text";
+inputField.type = "text";
+eqMemory.disabled = true;
+inputField.disabled = true;
 // screen.value = "test";
+screen.appendChild(eqMemory);
+screen.appendChild(inputField);
 display.appendChild(screen);
 calcSelector.appendChild(display);
-const screenSelector = document.querySelector(".screen");
+const inputFieldSelector = document.querySelector(".inputField");
+const eqMemorySelector = document.querySelector(".eqMemory");
 
 // CALCULATOR MEMORY ELEMENTS
 const memCont = document.createElement("div");
@@ -169,14 +180,16 @@ function addMemory(eval) {
   if (eval == "divisionError") {
     memory.innerHTML = `You tried to Divide By 0... STAHP! NOOOO-!`;
     mListSelector.prepend(memory);
-    screenSelector.value = "";
+    inputFieldSelector.value = "";
     return 1;
   }
 
-  memory.innerHTML = `${screenSelector.value} = ${eval}`;
-  mListSelector.prepend(memory);
-  screenSelector.value = eval;
-  return 0;
+  if (eCounter == 2) {
+    memory.innerHTML = `${equationCont[0]} ${equationCont[1]} ${equationCont[2]} = ${eval}`;
+    mListSelector.prepend(memory);
+    inputFieldSelector.value = eval;
+    return 0;
+  }
 }
 
 // EQUATION EVALUATION FUNCTION
@@ -232,6 +245,23 @@ function evalEquation(arr) {
   }
 }
 
+function getPercentage() {
+  if (equationCont.length == 3 && equationCont[2] != "") {
+    inputFieldSelector.value = "";
+    equationCont[2] = String((equationCont[0] * equationCont[2]) / 100);
+    inputFieldSelector.value = equationCont[2];
+    digitCounter = equationCont[2].length;
+  } else {
+    inputFieldSelector.value = "";
+    equationCont[0] = "0";
+    digitCounter = 1;
+    inputFieldSelector.value = "0";
+    console.log("test");
+  }
+
+  console.log(equationCont);
+}
+
 // CALCULATOR BUTTON GENERATOR FUNCTION
 function buttonGen() {
   for (i in calcButtons) {
@@ -248,15 +278,25 @@ function buttonGen() {
   return 0;
 }
 
+// COMMA INSERT FUNCTION
+function insertComma(str, index, value) {
+  return str.substr(0, index) + value + str.substr(index);
+}
+
 // BUTTON PRESS EVENT
 function buttonPressEvent() {
+  console.log(this);
   // Operator Button Check
   if (
     numCheck &&
     this.innerHTML.match(operatorDetector) &&
     this.innerHTML != "=" &&
     this.innerHTML != "." &&
-    this.innerHTML !== "+/-"
+    this.innerHTML !== "+/-" &&
+    this.innerHTML != "%" &&
+    this.id != "squared" &&
+    this.id != "square_root" &&
+    this.id != "reciprocal"
   ) {
     if (equationCont.length == 3) {
       evalEquation(equationCont);
@@ -264,16 +304,23 @@ function buttonPressEvent() {
       equationCont.push(equationResult);
       equationCont.push(this.innerHTML);
       numCheck = false;
-      screenSelector.value = screenSelector.value + ` ${this.innerHTML} `;
+      eqMemorySelector.value = inputFieldSelector.value + ` ${this.innerHTML} `;
+      inputFieldSelector.value = "";
       eCounter = 2;
       digitCounter = 0;
+      commaPos = 1;
+      addComma = 0;
       console.log(equationCont);
     } else {
       numCheck = false;
       equationCont.push(this.innerHTML);
       eCounter += 2;
       digitCounter = 0;
-      screenSelector.value = screenSelector.value + ` ${this.innerHTML} `;
+      commaPos = 1;
+      addComma = 0;
+      eqMemorySelector.value = inputFieldSelector.value + ` ${this.innerHTML} `;
+      inputFieldSelector.value = "";
+      console.log(equationCont);
     }
   }
 
@@ -288,6 +335,7 @@ function buttonPressEvent() {
           digitCounter++;
         } else {
           equationCont[eCounter] = equationCont[eCounter] + this.innerHTML;
+          console.log(equationCont[eCounter].length);
           digitCounter++;
         }
       } else {
@@ -295,21 +343,32 @@ function buttonPressEvent() {
         digitCounter++;
       }
 
-      screenSelector.value = screenSelector.value + `${this.innerHTML}`;
+      inputFieldSelector.value = inputFieldSelector.value + `${this.innerHTML}`;
+      addComma++;
+      console.log(equationCont);
+      if (addComma == 4) {
+        inputFieldSelector.value = insertComma(
+          inputFieldSelector.value,
+          commaPos,
+          ","
+        );
+        commaPos += 4;
+        addComma = 1;
+      }
     }
   }
 
   // Delete Button
-  if (this.innerHTML == "DEL" && screenSelector.value != "") {
-    let displayCopy = screenSelector.value;
+  if (this.innerHTML == "DEL" && inputFieldSelector.value != "") {
+    let displayCopy = inputFieldSelector.value;
     let opCheck = displayCopy.charAt(displayCopy.length - 1);
     let eContCopy = equationCont[eCounter];
 
     if (opCheck === " ") {
-      screenSelector.value = displayCopy.slice(0, displayCopy.length - 3);
+      inputFieldSelector.value = displayCopy.slice(0, displayCopy.length - 3);
       equationCont[eCounter] = eContCopy.slice(0, -1);
     } else {
-      screenSelector.value = displayCopy.slice(0, displayCopy.length - 1);
+      inputFieldSelector.value = displayCopy.slice(0, displayCopy.length - 1);
       equationCont[eCounter] = eContCopy.slice(0, -1);
       digitCounter--;
     }
@@ -322,8 +381,63 @@ function buttonPressEvent() {
     }
   }
 
+  // Clear (C) Button
+  if (this.innerHTML == "C" && inputFieldSelector.value != "") {
+    inputFieldSelector.value = "";
+    equationCont.length -= 1;
+    digitCounter = 0;
+    addComma = 0;
+    commaPos = 1;
+  }
+
+  // Clear Everything (CE) Button
+  if (this.innerHTML == "CE" && inputFieldSelector.value != "") {
+    inputFieldSelector.value = "";
+    eqMemorySelector.value = "";
+    equationCont.length -= equationCont.length;
+    digitCounter = 0;
+    addComma = 0;
+    eCounter = 0;
+    commaPos = 1;
+  }
+
+  // Percentage Trigger
+  if (this.innerHTML == "%" && inputFieldSelector.value != "") {
+    getPercentage();
+  }
+
+  // Squared Trigger
+  if (this.id == "squared" && inputFieldSelector.value != "") {
+    console.log("OK");
+    let squared = String(equationCont[eCounter] * equationCont[eCounter]);
+    equationCont[eCounter] = squared;
+    inputFieldSelector.value = "";
+    inputFieldSelector.value = squared;
+    console.log(equationCont);
+  }
+
+  // Square Root Trigger
+  if (this.id == "square_root" && inputFieldSelector.value != "") {
+    let squareRoot = Math.sqrt(equationCont[eCounter]);
+    squareRoot = String(squareRoot);
+    equationCont[eCounter] = squareRoot;
+    inputFieldSelector.value = "";
+    inputFieldSelector.value = squareRoot;
+    console.log(equationCont);
+  }
+
+  // Reciprocal Trigger
+  if (this.id == "reciprocal" && inputFieldSelector.value != "") {
+    let reciprocal = 1 / equationCont[eCounter];
+    reciprocal = String(reciprocal.toFixed(6));
+    equationCont[eCounter] = reciprocal;
+    inputFieldSelector.value = "";
+    inputFieldSelector.value = reciprocal;
+    console.log(equationCont);
+  }
+
   //Evaluation Trigger
-  if (this.innerHTML == "=" && screenSelector.value != "") {
+  if (this.innerHTML == "=" && inputFieldSelector.value != "") {
     if (equationCont.length == 3 && equationCont[2] != "") {
       // Dont Divide By Zero...
       if (
@@ -331,11 +445,21 @@ function buttonPressEvent() {
         equationCont[2] == 0
       ) {
         addMemory("divisionError");
-        screenSelector.value = "";
+        inputFieldSelector.value = "";
+        eqMemorySelector.value = "";
+        equationCont.length -= equationCont.length;
+        eCounter = 0;
+        addComma = 0;
         return 1;
       }
 
       evalEquation(equationCont);
+      eqMemorySelector.value = "";
+      eCounter = 0;
+      addComma = 0;
+      equationCont.length = equationCont.length - 2;
+      digitCounter = equationCont[eCounter].length + 1;
+      console.log(equationCont);
       return 0;
     }
   }
