@@ -2,6 +2,7 @@
 let numCheck = false;
 const operatorDetector = /[\W_]/g;
 const numDetector = /\d/;
+const decimalDetector = /\./;
 let equationCont = [];
 let equationResult;
 let eCounter = 0;
@@ -154,6 +155,7 @@ memName.innerHTML = "MEMORY";
 const memClear = document.createElement("div");
 memClear.classList.add("memClear");
 memClear.innerHTML = "CLEAR";
+memClear.addEventListener("click", buttonPressEvent);
 const memDisplay = document.createElement("div");
 memDisplay.classList.add("memDisplay");
 const memList = document.createElement("ul");
@@ -201,28 +203,28 @@ function evalEquation(arr) {
 
   // BASIC MATH OPERATIONS
   function multiply(a, b) {
-    result = parseInt(a) * parseInt(b);
+    result = Number(a) * Number(b);
     addMemory(result);
     equationResult = result;
     return 0;
   }
 
   function divide(a, b) {
-    result = parseInt(a) / parseInt(b);
+    result = Number(a) / Number(b);
     addMemory(result);
     equationResult = result;
     return 0;
   }
 
   function add(a, b) {
-    result = parseInt(a) + parseInt(b);
+    result = Number(a) + Number(b);
     addMemory(result);
     equationResult = result;
     return 0;
   }
 
   function subtract(a, b) {
-    result = parseInt(a) - parseInt(b);
+    result = Number(a) - Number(b);
     addMemory(result);
     equationResult = result;
     return 0;
@@ -279,13 +281,17 @@ function buttonGen() {
 }
 
 // COMMA INSERT FUNCTION
-function insertComma(str, index, value) {
+function insertComma(value) {
   return str.substr(0, index) + value + str.substr(index);
 }
 
+// function insertComma(str, index, value) {
+//   return str.substr(0, index) + value + str.substr(index);
+// }
+
 // BUTTON PRESS EVENT
 function buttonPressEvent() {
-  console.log(this);
+  // console.log(this);
   // Operator Button Check
   if (
     numCheck &&
@@ -296,7 +302,8 @@ function buttonPressEvent() {
     this.innerHTML != "%" &&
     this.id != "squared" &&
     this.id != "square_root" &&
-    this.id != "reciprocal"
+    this.id != "reciprocal" &&
+    this.id != "positive_negative"
   ) {
     if (equationCont.length == 3) {
       evalEquation(equationCont);
@@ -308,16 +315,16 @@ function buttonPressEvent() {
       inputFieldSelector.value = "";
       eCounter = 2;
       digitCounter = 0;
-      commaPos = 1;
-      addComma = 0;
+      // commaPos = 1;
+      // addComma = 0;
       console.log(equationCont);
     } else {
       numCheck = false;
       equationCont.push(this.innerHTML);
       eCounter += 2;
       digitCounter = 0;
-      commaPos = 1;
-      addComma = 0;
+      // commaPos = 1;
+      // addComma = 0;
       eqMemorySelector.value = inputFieldSelector.value + ` ${this.innerHTML} `;
       inputFieldSelector.value = "";
       console.log(equationCont);
@@ -344,17 +351,17 @@ function buttonPressEvent() {
       }
 
       inputFieldSelector.value = inputFieldSelector.value + `${this.innerHTML}`;
-      addComma++;
+      // addComma++;
       console.log(equationCont);
-      if (addComma == 4) {
-        inputFieldSelector.value = insertComma(
-          inputFieldSelector.value,
-          commaPos,
-          ","
-        );
-        commaPos += 4;
-        addComma = 1;
-      }
+      // if (addComma == 4) {
+      //   inputFieldSelector.value = insertComma(
+      //     inputFieldSelector.value,
+      //     commaPos,
+      //     ","
+      //   );
+      //   commaPos += 4;
+      //   addComma = 1;
+      // }
     }
   }
 
@@ -386,8 +393,8 @@ function buttonPressEvent() {
     inputFieldSelector.value = "";
     equationCont.length -= 1;
     digitCounter = 0;
-    addComma = 0;
-    commaPos = 1;
+    // addComma = 0;
+    // commaPos = 1;
   }
 
   // Clear Everything (CE) Button
@@ -396,14 +403,38 @@ function buttonPressEvent() {
     eqMemorySelector.value = "";
     equationCont.length -= equationCont.length;
     digitCounter = 0;
-    addComma = 0;
+    // addComma = 0;
     eCounter = 0;
-    commaPos = 1;
+    // commaPos = 1;
   }
 
   // Percentage Trigger
   if (this.innerHTML == "%" && inputFieldSelector.value != "") {
     getPercentage();
+  }
+
+  // Negative / Positive Number Trigger
+  if (this.id == "positive_negative" && inputFieldSelector.value != "") {
+    if (equationCont[eCounter][0] == "-") {
+      equationCont[eCounter] = equationCont[eCounter].replace("-", "");
+      inputFieldSelector.value = "";
+      inputFieldSelector.value = equationCont[eCounter];
+    } else {
+      equationCont[eCounter] = "-" + equationCont[eCounter];
+      inputFieldSelector.value = "";
+      inputFieldSelector.value = equationCont[eCounter];
+    }
+  }
+
+  // Decimal Trigger
+  if (this.innerHTML == "." && inputFieldSelector.value != "") {
+    console.log("OK");
+    if (!equationCont[eCounter].match(decimalDetector)) {
+      equationCont[eCounter] = equationCont[eCounter] + this.innerHTML;
+      console.log(equationCont);
+      inputFieldSelector.value = "";
+      inputFieldSelector.value = equationCont[eCounter];
+    }
   }
 
   // Squared Trigger
@@ -449,19 +480,24 @@ function buttonPressEvent() {
         eqMemorySelector.value = "";
         equationCont.length -= equationCont.length;
         eCounter = 0;
-        addComma = 0;
+        // addComma = 0;
         return 1;
       }
 
       evalEquation(equationCont);
       eqMemorySelector.value = "";
       eCounter = 0;
-      addComma = 0;
+      // addComma = 0;
       equationCont.length = equationCont.length - 2;
       digitCounter = equationCont[eCounter].length + 1;
       console.log(equationCont);
       return 0;
     }
+  }
+
+  // Memory Clear Trigger
+  if (this.classList == "memClear") {
+    mListSelector.innerHTML = "";
   }
 }
 
