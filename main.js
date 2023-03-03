@@ -7,8 +7,6 @@ let equationCont = [];
 let equationResult;
 let eCounter = 0;
 let digitCounter = 0;
-let commaPos = 1;
-let addComma = 0;
 
 // PROJECT CONTAINER
 const body = document.querySelector("body");
@@ -141,6 +139,7 @@ screen.appendChild(eqMemory);
 screen.appendChild(inputField);
 display.appendChild(screen);
 calcSelector.appendChild(display);
+
 const inputFieldSelector = document.querySelector(".inputField");
 const eqMemorySelector = document.querySelector(".eqMemory");
 
@@ -175,7 +174,7 @@ calcSelector.appendChild(controls);
 const ctrlSelect = document.querySelector(".controls");
 
 // ADD TO MEMORY
-function addMemory(eval) {
+function addMemory(eval, data) {
   const memory = document.createElement("li");
   memory.classList.add("memory");
 
@@ -186,7 +185,44 @@ function addMemory(eval) {
     return 1;
   }
 
-  if (eCounter == 2) {
+  if (eval == "percentage" && data) {
+    let result = `${addCommas(equationCont[0])} ${equationCont[1]} ${addCommas(
+      data
+    )}% = ${addCommas(equationCont[0] * data) / 100}`;
+    console.log(result);
+    memory.innerHTML = result;
+    console.log(memory);
+    mListSelector.prepend(memory);
+  }
+
+  if (eval === "calcReciprocal" && data) {
+    memory.innerHTML = `1 / (${addCommas(
+      equationCont[eCounter]
+    )}) = ${addCommas(data)}`;
+    console.log(memory);
+    mListSelector.prepend(memory);
+  }
+
+  if (eval == "squared" && data) {
+    memory.innerHTML = `sqr (${addCommas(
+      equationCont[eCounter]
+    )}) = ${addCommas(data)}`;
+    console.log(memory);
+    mListSelector.prepend(memory);
+  }
+  if (eval == "square_root" && data) {
+    memory.innerHTML = `Square Root () = ${addCommas(data)}`;
+    console.log(memory);
+    mListSelector.prepend(memory);
+  }
+
+  if (
+    eCounter == 2 &&
+    eval !== "percentage" &&
+    eval !== "reciprocal" &&
+    eval !== "squared" &&
+    eval !== "square_root"
+  ) {
     memory.innerHTML = `${equationCont[0]} ${equationCont[1]} ${equationCont[2]} = ${eval}`;
     mListSelector.prepend(memory);
     inputFieldSelector.value = eval;
@@ -250,8 +286,10 @@ function evalEquation(arr) {
 function getPercentage() {
   if (equationCont.length == 3 && equationCont[2] != "") {
     inputFieldSelector.value = "";
+    let backup = equationCont[2];
     equationCont[2] = String((equationCont[0] * equationCont[2]) / 100);
     inputFieldSelector.value = equationCont[2];
+    addMemory("percentage", backup);
     digitCounter = equationCont[2].length;
   } else {
     inputFieldSelector.value = "";
@@ -281,18 +319,15 @@ function buttonGen() {
 }
 
 // COMMA INSERT FUNCTION
-function insertComma(value) {
-  return str.substr(0, index) + value + str.substr(index);
+function addCommas(value) {
+  let valueCopy = value.replaceAll(",", "");
+  return valueCopy.replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
 }
-
-// function insertComma(str, index, value) {
-//   return str.substr(0, index) + value + str.substr(index);
-// }
 
 // BUTTON PRESS EVENT
 function buttonPressEvent() {
-  // console.log(this);
   // Operator Button Check
+
   if (
     numCheck &&
     this.innerHTML.match(operatorDetector) &&
@@ -315,16 +350,13 @@ function buttonPressEvent() {
       inputFieldSelector.value = "";
       eCounter = 2;
       digitCounter = 0;
-      // commaPos = 1;
-      // addComma = 0;
+
       console.log(equationCont);
     } else {
       numCheck = false;
       equationCont.push(this.innerHTML);
       eCounter += 2;
       digitCounter = 0;
-      // commaPos = 1;
-      // addComma = 0;
       eqMemorySelector.value = inputFieldSelector.value + ` ${this.innerHTML} `;
       inputFieldSelector.value = "";
       console.log(equationCont);
@@ -334,6 +366,10 @@ function buttonPressEvent() {
   // Number Button Check
   if (this.innerHTML.match(numDetector)) {
     numCheck = true;
+
+    if (operatorDetector.test(equationCont[eCounter])) {
+      eCounter++;
+    }
 
     if (digitCounter < 16) {
       if (equationCont.length >= 1) {
@@ -351,17 +387,8 @@ function buttonPressEvent() {
       }
 
       inputFieldSelector.value = inputFieldSelector.value + `${this.innerHTML}`;
-      // addComma++;
+      inputFieldSelector.value = addCommas(inputFieldSelector.value);
       console.log(equationCont);
-      // if (addComma == 4) {
-      //   inputFieldSelector.value = insertComma(
-      //     inputFieldSelector.value,
-      //     commaPos,
-      //     ","
-      //   );
-      //   commaPos += 4;
-      //   addComma = 1;
-      // }
     }
   }
 
@@ -393,19 +420,15 @@ function buttonPressEvent() {
     inputFieldSelector.value = "";
     equationCont.length -= 1;
     digitCounter = 0;
-    // addComma = 0;
-    // commaPos = 1;
   }
 
   // Clear Everything (CE) Button
-  if (this.innerHTML == "CE" && inputFieldSelector.value != "") {
+  if (this.innerHTML == "CE") {
     inputFieldSelector.value = "";
     eqMemorySelector.value = "";
     equationCont.length -= equationCont.length;
     digitCounter = 0;
-    // addComma = 0;
     eCounter = 0;
-    // commaPos = 1;
   }
 
   // Percentage Trigger
@@ -419,16 +442,17 @@ function buttonPressEvent() {
       equationCont[eCounter] = equationCont[eCounter].replace("-", "");
       inputFieldSelector.value = "";
       inputFieldSelector.value = equationCont[eCounter];
+      console.log(equationCont);
     } else {
       equationCont[eCounter] = "-" + equationCont[eCounter];
       inputFieldSelector.value = "";
       inputFieldSelector.value = equationCont[eCounter];
+      console.log(equationCont);
     }
   }
 
   // Decimal Trigger
   if (this.innerHTML == "." && inputFieldSelector.value != "") {
-    console.log("OK");
     if (!equationCont[eCounter].match(decimalDetector)) {
       equationCont[eCounter] = equationCont[eCounter] + this.innerHTML;
       console.log(equationCont);
@@ -441,29 +465,46 @@ function buttonPressEvent() {
   if (this.id == "squared" && inputFieldSelector.value != "") {
     console.log("OK");
     let squared = String(equationCont[eCounter] * equationCont[eCounter]);
+    addMemory("squared", squared);
     equationCont[eCounter] = squared;
     inputFieldSelector.value = "";
-    inputFieldSelector.value = squared;
+    inputFieldSelector.value = addCommas(squared);
+    digitCounter = equationCont[eCounter].length;
+    console.log(digitCounter);
     console.log(equationCont);
   }
 
   // Square Root Trigger
   if (this.id == "square_root" && inputFieldSelector.value != "") {
+    let sqBackup = equationCont[eCounter];
     let squareRoot = Math.sqrt(equationCont[eCounter]);
-    squareRoot = String(squareRoot);
+
+    if (String(squareRoot).length >= 16) {
+      console.log("ok");
+      squareRoot = String(squareRoot.toFixed(16));
+    } else {
+      squareRoot = String(squareRoot);
+    }
+
+    addMemory("square_root", squareRoot);
     equationCont[eCounter] = squareRoot;
     inputFieldSelector.value = "";
-    inputFieldSelector.value = squareRoot;
+    inputFieldSelector.value = addCommas(squareRoot);
     console.log(equationCont);
   }
 
   // Reciprocal Trigger
   if (this.id == "reciprocal" && inputFieldSelector.value != "") {
-    let reciprocal = 1 / equationCont[eCounter];
-    reciprocal = String(reciprocal.toFixed(6));
-    equationCont[eCounter] = reciprocal;
+    let calcReciprocal = 1 / equationCont[eCounter];
+    if (String(calcReciprocal).length >= 16) {
+      calcReciprocal = String(calcReciprocal.toFixed(16));
+    } else {
+      calcReciprocal = String(calcReciprocal);
+    }
+    addMemory("calcReciprocal", calcReciprocal);
+    equationCont[eCounter] = calcReciprocal;
     inputFieldSelector.value = "";
-    inputFieldSelector.value = reciprocal;
+    inputFieldSelector.value = calcReciprocal;
     console.log(equationCont);
   }
 
@@ -480,14 +521,12 @@ function buttonPressEvent() {
         eqMemorySelector.value = "";
         equationCont.length -= equationCont.length;
         eCounter = 0;
-        // addComma = 0;
         return 1;
       }
 
       evalEquation(equationCont);
       eqMemorySelector.value = "";
       eCounter = 0;
-      // addComma = 0;
       equationCont.length = equationCont.length - 2;
       digitCounter = equationCont[eCounter].length + 1;
       console.log(equationCont);
